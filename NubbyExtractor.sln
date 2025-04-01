@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NubbyExtractor", "NubbyExtractor\NubbyExtractor.csproj", "{DFEE2131-30AB-4712-80EA-BABE4D6A28AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UndertaleModLib", "UndertaleModTool\UndertaleModLib\UndertaleModLib.csproj", "{3E1FBADF-4C64-D01C-7F2D-01009E3B0CBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Underanalyzer", "UndertaleModTool\Underanalyzer\Underanalyzer\Underanalyzer.csproj", "{69A5B990-A618-48D4-D9D3-5A9F093BDCEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DFEE2131-30AB-4712-80EA-BABE4D6A28AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFEE2131-30AB-4712-80EA-BABE4D6A28AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFEE2131-30AB-4712-80EA-BABE4D6A28AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFEE2131-30AB-4712-80EA-BABE4D6A28AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E1FBADF-4C64-D01C-7F2D-01009E3B0CBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E1FBADF-4C64-D01C-7F2D-01009E3B0CBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E1FBADF-4C64-D01C-7F2D-01009E3B0CBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E1FBADF-4C64-D01C-7F2D-01009E3B0CBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69A5B990-A618-48D4-D9D3-5A9F093BDCEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69A5B990-A618-48D4-D9D3-5A9F093BDCEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69A5B990-A618-48D4-D9D3-5A9F093BDCEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69A5B990-A618-48D4-D9D3-5A9F093BDCEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {01EE3D9D-2C87-44DB-9ADD-0ACBDA7972C1}
+	EndGlobalSection
+EndGlobal

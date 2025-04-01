@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NubbyExtractor": {
+      "commandName": "Project",
+      "commandLineArgs": "\"F:\\Steam\\Steam\\steamapps\\common\\Nubby's Number Factory\""
+    }
+  }
+}
