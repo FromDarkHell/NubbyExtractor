@@ -49,7 +49,7 @@ namespace NubbyExtractor
             Shop = 1,
             BlackMarket = 2,
             Cafe = 3,
-    };
+        };
 
         public enum NubbyLevelWeighting
         {
@@ -85,18 +85,20 @@ namespace NubbyExtractor
         {
             get
             {
-                return (int) Math.Round(Price / 2.0);
+                return (int)Math.Round(Price / 2.0);
             }
         }
 
         public int OffsetPrice { get { return offsetPrice; } }
         public int UpgradeID { get { return upgradeID; } }
         public string? MainTriggerID { get { return mainTriggerID; } }
+        public NubbyText? MainTriggerText { get { return new NubbyText(mainTriggerID); } }
         public string? AltTriggerID { get { return altTriggerID; } }
+        public NubbyText? AltTriggerText { get { return new NubbyText(altTriggerID); } }
 
         public string? ObjectName { get { return gameObject?.Name.Content; } }
 
-        public string? SpriteName { get { return gameObject?.Sprite?.Name.Content; }}
+        public string? SpriteName { get { return gameObject?.Sprite?.Name.Content; } }
 
         public Dictionary<NubbyLevelWeighting, int>? LevelWeighting { get { return levelWeighting; } }
 
@@ -113,16 +115,16 @@ namespace NubbyExtractor
             Rare = 1,
             UltraRare = 2,
         }
-        
+
         public enum NubbyPerkType
         {
-            _UNK1 = 0, 
+            _UNK1 = 0,
             _UNK2 = 1,
         }
 
         public int ID { get { return id; } }
         public NubbyText PerkName { get { return perkName; } }
-        
+
         public string TriggerID { get { return triggerID; } }
         public NubbyText TriggerText { get { return new NubbyText(triggerID); } }
 
@@ -145,9 +147,10 @@ namespace NubbyExtractor
     {
         private class NubbyTranslation
         {
-            public static CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture) { 
-                HasHeaderRecord = false, 
-                BadDataFound = null 
+            public static CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false,
+                BadDataFound = null
             };
 
             [Index(0)]
@@ -189,16 +192,16 @@ namespace NubbyExtractor
             using (var csv = new CsvReader(translationReader, NubbyTranslation.csvConfiguration))
             {
                 var records = csv.GetRecords<NubbyTranslation>();
-                foreach(var record in records)
+                foreach (var record in records)
                 {
-                    if(!translationMapping.ContainsKey(record.Key)) translationMapping.Add(record.Key, record.Value);
+                    if (!translationMapping.ContainsKey(record.Key)) translationMapping.Add(record.Key, record.Value);
                 }
             }
 
             initializeItems();
             initializePerks();
         }
-    
+
         private void initializePerks()
         {
             perks = [];
@@ -329,11 +332,16 @@ namespace NubbyExtractor
                 var itemDescriptionText = new NubbyText(itemDescriptionNode);
 
                 FunctionCallNode itemInitExtCall = itemInitExtCalls[i];
+
+                Debug.Assert(
+                    (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[0]) == itemID
+                );
+
                 Dictionary<NubbyLevelWeighting, int> levelWeighting = new Dictionary<NubbyLevelWeighting, int>()
                 {
-                    { NubbyLevelWeighting.EARLY, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[0]) },
-                    { NubbyLevelWeighting.MID, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[1]) },
-                    { NubbyLevelWeighting.LATE, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[2]) }
+                    { NubbyLevelWeighting.EARLY, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[1]) },
+                    { NubbyLevelWeighting.MID, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[2]) },
+                    { NubbyLevelWeighting.LATE, (int)NubbyUtil.parseVariableNode(itemInitExtCall.Arguments[3]) }
                 };
 
                 var nubbyItem = new NubbyItem(

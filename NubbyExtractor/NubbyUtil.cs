@@ -36,19 +36,19 @@ namespace NubbyExtractor
                 arguments = functionCallNode.Arguments.Select((x) => NubbyUtil.parseVariableNode(x)).ToList();
                 arguments.RemoveAt(0);
             }
-            else if(functionCallNode.FunctionName == "string")
+            else if (functionCallNode.FunctionName == "string")
             {
                 IExpressionNode argumentNode = ((FunctionCallNode)functionCallNode.Arguments[0]).Arguments[0];
-                if(argumentNode is BinaryNode)
+                if (argumentNode is BinaryNode)
                 {
                     BinaryNode binaryNode = (BinaryNode)argumentNode;
                     if (binaryNode.Instruction.Kind != IGMInstruction.Opcode.Add) throw new NotImplementedException();
 
-                    concatenation = NubbyUtil.parseVariableNode(binaryNode.Right);                    
-                    if(binaryNode.Left is FunctionCallNode)
+                    concatenation = NubbyUtil.parseVariableNode(binaryNode.Right);
+                    if (binaryNode.Left is FunctionCallNode)
                     {
                         FunctionCallNode subFunctionCallNode = (FunctionCallNode)binaryNode.Left;
-                        if(subFunctionCallNode.ConditionalValue == "gml_Script_scr_Text")
+                        if (subFunctionCallNode.ConditionalValue == "gml_Script_scr_Text")
                         {
                             defaultID = NubbyUtil.parseVariableNode(subFunctionCallNode.Arguments[0]);
 
@@ -192,7 +192,7 @@ namespace NubbyExtractor
             if (conditionalNode is FunctionCallNode)
             {
                 FunctionCallNode functionCallNode = (FunctionCallNode)conditionalNode;
-                List<dynamic> arguments = functionCallNode.Arguments.Select((x) => parseVariableNode(x, declaredVariables)).ToList();
+                List<dynamic> arguments = [.. functionCallNode.Arguments.Select((x) => parseVariableNode(x, declaredVariables))];
 
                 if (functionCallNode.FunctionName == "gml_Script_scr_Text")
                 {
@@ -200,13 +200,13 @@ namespace NubbyExtractor
                     if (arguments.Count <= 1) return arguments[0];
                 }
 
-                if (functionCallNode.FunctionName == "string") 
+                if (functionCallNode.FunctionName == "string")
                     return arguments[0];
 
                 if (functionCallNode.FunctionName == "string_format")
                 {
                     var val = (double)arguments[0];
-                    
+
                     int total = (int)arguments[1];
                     int dec = (int)arguments[2];
 
@@ -219,7 +219,7 @@ namespace NubbyExtractor
 
             throw new NotImplementedException();
         }
-    
+
         public static List<IMagickImage<byte>> loadFramesFromSprite(UndertaleSprite sprite)
         {
             Debug.Assert(sprite != null);
@@ -227,14 +227,14 @@ namespace NubbyExtractor
             TextureWorker textureWorker = new TextureWorker();
 
             List<IMagickImage<byte>> frames = [];
-            foreach(var textureEntry in sprite.Textures)
+            foreach (var textureEntry in sprite.Textures)
             {
                 var pageItem = textureEntry.Texture;
-                var embeddedTexture = textureWorker.GetTextureFor(pageItem, sprite.Name.Content);
-                
+                var embeddedTexture = textureWorker.GetTextureFor(pageItem, sprite.Name.Content, true);
+
                 // Prevents frames with transparent backgrounds from overlapping each other
                 embeddedTexture.GifDisposeMethod = GifDisposeMethod.Previous;
-                
+
                 frames.Add(embeddedTexture);
             }
 
