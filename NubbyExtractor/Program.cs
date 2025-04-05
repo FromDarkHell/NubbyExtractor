@@ -1,7 +1,9 @@
 ﻿
 
+using CsvHelper;
 using ImageMagick;
 using NubbyExtractor;
+using NubbyExtractor.Definitions;
 using ShellProgressBar;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -9,76 +11,100 @@ using UndertaleModLib.Models;
 
 internal class Program
 {
+    private static void exportDescriptionSprites(string description, IEnumerable<UndertaleSprite> allSprites, DirectoryInfo spriteDirectory)
+    {
+        var matches = Regex.Matches(description, @"\[([A-Za-z0-9_]*),[0-9]+\]");
+        foreach (Match match in matches)
+        {
+            var spriteName = match.Groups[1].Value;
+
+            var sprite = allSprites.First((x) => x.Name.Content == spriteName);
+
+            exportSprite(sprite, spriteDirectory);
+        }
+    }
+
     private static void Main(string[] args)
     {
         var nubbyPath = new DirectoryInfo(args[0]);
 
         NubbyParser parser = new NubbyParser(nubbyPath);
 
+        JsonSerializerOptions serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            Converters = {
+                        new NubbyTextConverter(parser.getTranslationData()),
+                        new ImageMagicColorConverter()
+                }
+        };
+
         var nubbyItems = parser.getNubbyItems();
         var nubbyPerks = parser.getNubbyPerks();
+        var nubbySupervisors = parser.getNubbySupervisors();
+
         Console.WriteLine($"Loaded {parser.getTranslationData().Count} translation data...");
 
         Console.WriteLine($"Loaded {nubbyItems.Count} items...");
         Console.WriteLine($"Loaded {nubbyPerks.Count} perks...");
-
-        string itemString = JsonSerializer.Serialize(
-            nubbyItems,
-            new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true,
-                Converters = {
-                    new NubbyTextConverter(parser.getTranslationData()),
-                    new ImageMagicColorConverter()
-                }
-            }
-        );
-
-        string perkString = JsonSerializer.Serialize(
-            nubbyPerks,
-            new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true,
-                Converters = {
-                    new NubbyTextConverter(parser.getTranslationData()),
-                    new ImageMagicColorConverter()
-                }
-            }
-        );
+        Console.WriteLine($"Loaded {nubbySupervisors.Count} supervisors...");
 
         var exportDirectory = new DirectoryInfo(Path.Join(nubbyPath.FullName, "exports"));
         if (!exportDirectory.Exists) exportDirectory.Create();
 
-        var itemFile = Path.Join(exportDirectory.FullName, "items.json");
-        File.WriteAllText(itemFile, itemString);
+        File.WriteAllText(
+            Path.Join(exportDirectory.FullName, "items.json"),
+            JsonSerializer.Serialize(
+                nubbyItems,
+                serializerOptions
+            )
+        );
 
-        var perkFile = Path.Join(exportDirectory.FullName, "perks.json");
-        File.WriteAllText(perkFile, perkString);
+        File.WriteAllText(
+            Path.Join(exportDirectory.FullName, "perks.json"),
+            JsonSerializer.Serialize(
+                nubbyPerks,
+                serializerOptions
+            )
+        );
+
+        File.WriteAllText(
+            Path.Join(exportDirectory.FullName, "supervisors.json"),
+            JsonSerializer.Serialize(
+                nubbySupervisors,
+                serializerOptions
+            )
+        );
 
         // Time to write out all the sprites
         var spriteDirectory = new DirectoryInfo(Path.Join(exportDirectory.FullName, "sprites"));
         if (!spriteDirectory.Exists) spriteDirectory.Create();
 
+        var allSprites = parser.getData().Sprites;
+
+        using (var pbar = new ProgressBar(nubbySupervisors.Count, "Exporting supervisor sprites"))
+        {
+            foreach (var supervisor in nubbySupervisors)
+            {
+                pbar.Tick($"Checking {supervisor.ID}");
+
+                if (supervisor.Sprite != null) exportSprite(supervisor.Sprite, spriteDirectory);
+                
+                var description = supervisor.Description.ToString(parser.getTranslationData());
+                exportDescriptionSprites(description, allSprites, spriteDirectory);
+            }
+        }
+
         using (var pbar = new ProgressBar(nubbyItems.Count + nubbyPerks.Count, "Checking/exporting misc sprites"))
         {
-            var allSprites = parser.getData().Sprites;
 
             foreach (var nubbyItem in nubbyItems)
             {
                 pbar.Tick($"Checking {nubbyItem.ObjectName}");
-
                 var description = nubbyItem.DescriptionText.ToString(parser.getTranslationData());
-                var matches = Regex.Matches(description, @"\[([A-Za-z0-9_]*),[0-9]+\]");
-                foreach (Match match in matches)
-                {
-                    var spriteName = match.Groups[1].Value;
 
-                    var sprite = allSprites.First((x) => x.Name.Content == spriteName);
-
-                    exportSprite(sprite, spriteDirectory);
-                }
+                exportDescriptionSprites(description, allSprites, spriteDirectory);
             }
 
             foreach (var nubbyPerk in nubbyItems)
@@ -86,14 +112,7 @@ internal class Program
                 pbar.Tick($"Checking {nubbyPerk.ObjectName}");
 
                 var description = nubbyPerk.DescriptionText.ToString(parser.getTranslationData());
-                var matches = Regex.Matches(description, @"\[([A-Za-z0-9_]*),[0-9]+\]");
-                foreach (Match match in matches)
-                {
-                    var spriteName = match.Groups[1].Value;
-                    var sprite = allSprites.First((x) => x.Name.Content == spriteName);
-
-                    exportSprite(sprite, spriteDirectory);
-                }
+                exportDescriptionSprites(description, allSprites, spriteDirectory);
             }
         }
 

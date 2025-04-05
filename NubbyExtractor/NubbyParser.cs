@@ -6,172 +6,17 @@ using CsvHelper.Configuration;
 using UndertaleModLib.Decompiler;
 using Underanalyzer.Decompiler;
 using Underanalyzer.Decompiler.AST;
-using static NubbyExtractor.NubbyItem;
-using static NubbyExtractor.NubbyPerk;
+using static NubbyExtractor.Definitions.NubbyItem;
+using static NubbyExtractor.Definitions.NubbyPerk;
+using static NubbyExtractor.Definitions.NubbySupervisor;
 
 using System.Diagnostics;
 using UndertaleModLib.Models;
-using System.Text.Json.Serialization;
 using ImageMagick.Colors;
+using NubbyExtractor.Definitions;
 
 namespace NubbyExtractor
 {
-    public class NubbyItem(int id, NubbyText nameText, NubbyText descriptionText, int itemLevel, NubbyItemType itemType, NubbyItemTier itemRarity, NubbyItemPool itemPool, string? generalEffect, int offsetPrice, int upgradeID, string? mainTriggerID, string? altTriggerID, Dictionary<NubbyLevelWeighting, int>? levelWeighting, UndertaleGameObject? gameObject)
-    {
-        public static readonly Dictionary<NubbyItemTier, int> basePrices = new()
-        {
-            { NubbyItemTier.COMMON, 5 },
-
-            { NubbyItemTier.RARE, 10 },
-            { NubbyItemTier.ULTRA_RARE, 10 },
-        };
-
-        public enum NubbyItemType
-        {
-            Item = 0,
-            UpgradedItem = 1,
-            CorruptedItem = 2,
-            UpgradedCorruptedItem = 3,
-            Food = 4,
-            UpgradedFood = 5
-        };
-
-        public enum NubbyItemTier
-        {
-            COMMON = 0,
-            RARE = 1,
-            ULTRA_RARE = 2,
-        };
-
-        public enum NubbyItemPool
-        {
-            Unobtainable = 0,
-            Shop = 1,
-            BlackMarket = 2,
-            Cafe = 3,
-        };
-
-        public enum NubbyLevelWeighting
-        {
-            // Early-Game is any rounds <= 10
-            EARLY = 0,
-
-            // Mid-Game is > 10 and <=50
-            MID = 1,
-
-            // Late-Game is > 50
-            LATE = 2,
-        }
-
-        public int Id { get { return id; } }
-        public NubbyText NameText { get { return nameText; } }
-        public NubbyText DescriptionText { get { return descriptionText; } }
-
-        public int ItemLevel { get { return itemLevel; } }
-        public NubbyItemType ItemType { get { return itemType; } }
-        public NubbyItemTier ItemRarity { get { return itemRarity; } }
-        public NubbyItemPool ItemPool { get { return itemPool; } }
-        public string? GeneralEffect { get { return generalEffect; } }
-
-        public int Price
-        {
-            get
-            {
-                return (basePrices[itemRarity] + offsetPrice);
-            }
-        }
-
-        public int SellPrice
-        {
-            get
-            {
-                return (int)Math.Round(Price / 2.0);
-            }
-        }
-
-        public int OffsetPrice { get { return offsetPrice; } }
-        public int UpgradeID { get { return upgradeID; } }
-        public string? MainTriggerID { get { return mainTriggerID; } }
-        public NubbyText? MainTriggerText { get { return new NubbyText(mainTriggerID); } }
-        public string? AltTriggerID { get { return altTriggerID; } }
-        public NubbyText? AltTriggerText { get { return new NubbyText(altTriggerID); } }
-
-        public string? ObjectName { get { return gameObject?.Name.Content; } }
-
-        public string? SpriteName { get { return gameObject?.Sprite?.Name.Content; } }
-
-        public Dictionary<NubbyLevelWeighting, int>? LevelWeighting { get { return levelWeighting; } }
-
-        [JsonIgnore]
-        public UndertaleGameObject? gameObject = gameObject;
-    }
-
-    public class NubbyPerk(int id, NubbyText perkName, UndertaleGameObject? gameObject, string triggerID, NubbyPerkTier perkTier, NubbyPerkType perkType, NubbyPerkPool perkPool, ColorRGB perkEffectColor, NubbyPerkAltDescription altPerkDescVal, NubbyText perkDescription)
-    {
-        public enum NubbyPerkTier
-        {
-            Unused = -1,
-            Common = 0,
-            Rare = 1,
-            UltraRare = 2,
-        }
-
-        public enum NubbyPerkType
-        {
-            _UNK1 = 0,
-            _UNK2 = 1,
-        }
-
-        public enum NubbyPerkPool
-        {
-            Unobtainable = 0,
-            Capsule = 1,
-        }
-
-        public enum NubbyPerkAltDescription
-        {
-            None = 0,
-            Disable = 1,
-        }
-
-        // See: gml_Object_obj_PerkMGMT_Draw_64
-        // *maybe* eventually automate this, but meh
-        private Dictionary<NubbyPerkAltDescription, string[]> altDescriptionTextIDs = new() {
-            { NubbyPerkAltDescription.Disable, ["altdesc_disable", "\n"] }
-        };
-
-        public int ID { get { return id; } }
-        public NubbyText PerkName { get { return perkName; } }
-
-        public string TriggerID { get { return triggerID; } }
-        public NubbyText TriggerText { get { return new NubbyText(triggerID); } }
-
-        public NubbyPerkTier PerkTier { get { return perkTier; } }
-        public NubbyPerkType PerkType { get { return perkType; } }
-        public NubbyPerkPool PerkPool { get { return perkPool; } }
-        public ColorRGB PerkEffectColor { get { return perkEffectColor; } }
-
-        public NubbyPerkAltDescription AltPerkDescVal { get { return altPerkDescVal; } }
-        public NubbyText? AltPerkDescText
-        {
-            get
-            {
-                if (altPerkDescVal == NubbyPerkAltDescription.None) return null;
-
-                return new NubbyText(altDescriptionTextIDs[altPerkDescVal]);
-            }
-        }
-
-        public NubbyText PerkDescription { get { return perkDescription; } }
-
-        public string? ObjectName { get { return gameObject?.Name.Content; } }
-
-        public string? SpriteName { get { return gameObject?.Sprite?.Name.Content; } }
-
-        [JsonIgnore]
-        public UndertaleGameObject? GameObject { get { return gameObject; } }
-    }
-
     public class NubbyParser
     {
         private class NubbyTranslation
@@ -190,17 +35,18 @@ namespace NubbyExtractor
         }
 
         private UndertaleData gmData;
-        private Dictionary<string, string> translationMapping;
+        private GlobalDecompileContext decompileContext;
 
+        private Dictionary<string, string> translationMapping;
         private List<NubbyItem>? items;
         private List<NubbyPerk>? perks;
-
-        private GlobalDecompileContext decompileContext;
+        private List<NubbySupervisor>? supervisors;
 
         public UndertaleData getData() => gmData;
         public Dictionary<string, string> getTranslationData() => translationMapping;
         public List<NubbyItem> getNubbyItems() => items!;
         public List<NubbyPerk> getNubbyPerks() => perks!;
+        public List<NubbySupervisor> getNubbySupervisors() => supervisors!;
 
         public NubbyParser(DirectoryInfo installationDirectory)
         {
@@ -229,6 +75,7 @@ namespace NubbyExtractor
 
             initializeItems();
             initializePerks();
+            initializeSupervisors();
         }
 
         private void initializePerks()
@@ -267,11 +114,7 @@ namespace NubbyExtractor
 
                 int perkFxColor = (int)NubbyUtil.parseVariableNode(arguments[7]);
 
-                byte red = Convert.ToByte((perkFxColor >> 16) & 0xFF);
-                byte green = Convert.ToByte((perkFxColor >> 8) & 0xFF);
-                byte blue = Convert.ToByte((perkFxColor) & 0xFF);
-
-                ColorRGB perkFXRGB = new ColorRGB(red, green, blue);
+                ColorRGB perkFXRGB = NubbyUtil.integerToRGB(perkFxColor);
 
                 int altPerkDescVal = (int)NubbyUtil.parseVariableNode(arguments[8]);
 
@@ -397,6 +240,47 @@ namespace NubbyExtractor
                 items.Add(nubbyItem);
             }
 
+        }
+
+        private void initializeSupervisors()
+        {
+            supervisors = [];
+
+            var supervisorManagementCall = gmData.Code.ByName("gml_Object_obj_SupervisorMGMT_Create_0");
+            var supervisorManagementCode = new DecompileContext(decompileContext, supervisorManagementCall, gmData.ToolInfo.DecompilerSettings).DecompileToAST() as BlockNode;
+
+            var assignmentCalls = supervisorManagementCode?.Children.Where((x) => x is AssignNode).Cast<AssignNode>() ?? [];
+
+            Dictionary<int, Dictionary<string, dynamic?>> supervisorMapping = [];
+
+            foreach (AssignNode assignmentCall in assignmentCalls)
+            {
+                var assignedVariable = assignmentCall.Variable;
+                if(assignedVariable is VariableNode)
+                {
+                    var variableNode = (VariableNode)assignedVariable;
+                    if(variableNode.ConditionalValue == "SuperVisorName" || variableNode.ConditionalValue == "SuperVisorDesc" || variableNode.ConditionalValue == "SVSprite" || variableNode.ConditionalValue == "SuperVisorCol1" || variableNode.ConditionalValue == "SuperVisorCol2" || variableNode.ConditionalValue == "SVCost")
+                    {
+                        var supervisorIndex = (int)NubbyUtil.parseVariableNode(variableNode.ArrayIndices![0]);
+                        if (!supervisorMapping.ContainsKey(supervisorIndex)) supervisorMapping[supervisorIndex] = [];
+
+                        supervisorMapping[supervisorIndex][variableNode.ConditionalValue] = NubbyUtil.parseVariableNode(
+                            assignmentCall.Value!, 
+                            gameData: gmData
+                        );
+                    }
+                }
+            }
+
+            supervisors = [.. supervisorMapping.Select((x) => new NubbySupervisor(
+                    id: x.Key,
+                    name: new NubbyText(x.Value["SuperVisorName"]),
+                    descriptionText: new NubbyText(x.Value["SuperVisorDesc"]),
+                    sprite: x.Value["SVSprite"],
+                    cost: x.Value["SVCost"],
+                    colorOne: NubbyUtil.integerToRGB(x.Value["SuperVisorCol1"]),
+                    colorTwo: NubbyUtil.integerToRGB(x.Value["SuperVisorCol2"])
+                ))];
         }
     }
 }

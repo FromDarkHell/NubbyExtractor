@@ -14,6 +14,7 @@ using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Underanalyzer;
 using Underanalyzer.Decompiler.AST;
+using UndertaleModLib;
 using UndertaleModLib.Models;
 using UndertaleModLib.Util;
 
@@ -151,7 +152,9 @@ namespace NubbyExtractor
 
     static class NubbyUtil
     {
-        public static dynamic? parseVariableNode(IExpressionNode conditionalNode, Dictionary<string, dynamic>? declaredVariables = null)
+        public static dynamic? parseVariableNode(IExpressionNode conditionalNode, 
+            Dictionary<string, dynamic>? declaredVariables = null,
+            UndertaleData? gameData = null)
         {
             if (conditionalNode is Int16Node) return ((Int16Node)conditionalNode).Value;
             if (conditionalNode is Int32Node) return ((Int32Node)conditionalNode).Value;
@@ -221,6 +224,47 @@ namespace NubbyExtractor
                         .PadLeft((baseString.Split('.')[0].Length - 1), '0')
                         .PadRight((baseString.Split('.')[1].Length - 1), '0');
                 }
+
+                return conditionalNode;
+            }
+
+            if (conditionalNode is AssetReferenceNode)
+            {
+                Debug.Assert(gameData != null);
+                var assetReferenceNode = (AssetReferenceNode)conditionalNode;
+                switch (assetReferenceNode.AssetType)
+                {
+                    case AssetType.Object:
+                        return gameData.GameObjects[assetReferenceNode.AssetId];
+                    case AssetType.Sprite:
+                        return gameData.Sprites[assetReferenceNode.AssetId];
+                    case AssetType.Sound:
+                        return gameData.Sounds[assetReferenceNode.AssetId];
+                    case AssetType.Room:
+                        return gameData.Rooms[assetReferenceNode.AssetId];
+                    case AssetType.Background:
+                        return gameData.Backgrounds[assetReferenceNode.AssetId];
+                    case AssetType.Path:
+                        return gameData.Paths[assetReferenceNode.AssetId];
+                    case AssetType.Script:
+                        return gameData.Scripts[assetReferenceNode.AssetId];
+                    case AssetType.Font:
+                        return gameData.Fonts[assetReferenceNode.AssetId];
+                    case AssetType.Timeline:
+                        return gameData.Timelines[assetReferenceNode.AssetId];
+                    case AssetType.Shader:
+                        return gameData.Shaders[assetReferenceNode.AssetId];
+                    case AssetType.Sequence:
+                        return gameData.Sequences[assetReferenceNode.AssetId];
+                    case AssetType.AnimCurve:
+                        return gameData.AnimationCurves[assetReferenceNode.AssetId];
+                    case AssetType.ParticleSystem:
+                        return gameData.ParticleSystems[assetReferenceNode.AssetId];
+                    case AssetType.RoomInstance:
+                        return gameData.Rooms[assetReferenceNode.AssetId];
+                }
+                
+                throw new NotImplementedException();
             }
 
             throw new NotImplementedException();
@@ -245,6 +289,15 @@ namespace NubbyExtractor
             }
 
             return frames;
+        }
+    
+        public static ColorRGB integerToRGB(int color)
+        {
+            byte red = Convert.ToByte((color >> 16) & 0xFF);
+            byte green = Convert.ToByte((color >> 8) & 0xFF);
+            byte blue = Convert.ToByte((color) & 0xFF);
+
+            return new ColorRGB(red, green, blue);
         }
     }
 }
