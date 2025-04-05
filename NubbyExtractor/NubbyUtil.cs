@@ -82,6 +82,12 @@ namespace NubbyExtractor
             arguments = [];
         }
 
+        public NubbyText(string[] allArguments)
+        {
+            defaultID = allArguments[0];
+            arguments = [.. allArguments.Skip(1).Cast<dynamic?>()];
+        }
+
         public override string ToString() => ToString(null);
 
         public string ToString(Dictionary<string, string>? translationMapping = null)

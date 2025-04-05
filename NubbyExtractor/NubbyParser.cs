@@ -106,7 +106,7 @@ namespace NubbyExtractor
         public UndertaleGameObject? gameObject = gameObject;
     }
 
-    public class NubbyPerk(int id, NubbyText perkName, UndertaleGameObject? gameObject, string triggerID, NubbyPerkTier perkTier, NubbyPerkType perkType, bool inPerkPool, ColorRGB perkEffectColor, int altPerkDescVal, NubbyText perkDescription)
+    public class NubbyPerk(int id, NubbyText perkName, UndertaleGameObject? gameObject, string triggerID, NubbyPerkTier perkTier, NubbyPerkType perkType, NubbyPerkPool perkPool, ColorRGB perkEffectColor, NubbyPerkAltDescription altPerkDescVal, NubbyText perkDescription)
     {
         public enum NubbyPerkTier
         {
@@ -122,6 +122,24 @@ namespace NubbyExtractor
             _UNK2 = 1,
         }
 
+        public enum NubbyPerkPool
+        {
+            Unobtainable = 0,
+            Capsule = 1,
+        }
+
+        public enum NubbyPerkAltDescription
+        {
+            None = 0,
+            Disable = 1,
+        }
+
+        // See: gml_Object_obj_PerkMGMT_Draw_64
+        // *maybe* eventually automate this, but meh
+        private Dictionary<NubbyPerkAltDescription, string[]> altDescriptionTextIDs = new() {
+            { NubbyPerkAltDescription.Disable, ["altdesc_disable", "\n"] }
+        };
+
         public int ID { get { return id; } }
         public NubbyText PerkName { get { return perkName; } }
 
@@ -130,9 +148,20 @@ namespace NubbyExtractor
 
         public NubbyPerkTier PerkTier { get { return perkTier; } }
         public NubbyPerkType PerkType { get { return perkType; } }
-        public bool InPerkPool { get { return inPerkPool; } }
+        public NubbyPerkPool PerkPool { get { return perkPool; } }
         public ColorRGB PerkEffectColor { get { return perkEffectColor; } }
-        public int AltPerkDescVal { get { return altPerkDescVal; } }
+
+        public NubbyPerkAltDescription AltPerkDescVal { get { return altPerkDescVal; } }
+        public NubbyText? AltPerkDescText
+        {
+            get
+            {
+                if (altPerkDescVal == NubbyPerkAltDescription.None) return null;
+
+                return new NubbyText(altDescriptionTextIDs[altPerkDescVal]);
+            }
+        }
+
         public NubbyText PerkDescription { get { return perkDescription; } }
 
         public string? ObjectName { get { return gameObject?.Name.Content; } }
@@ -234,11 +263,7 @@ namespace NubbyExtractor
                 int perkTier = (int)NubbyUtil.parseVariableNode(arguments[4]);
                 int perkType = (int)NubbyUtil.parseVariableNode(arguments[5]);
 
-                short inPerkItemPoolVal = (short)NubbyUtil.parseVariableNode(arguments[6]);
-
-                bool inPerkItemPool = false;
-                if (inPerkItemPoolVal <= 0) inPerkItemPool = false;
-                else inPerkItemPool = true;
+                int perkItemPool = (int)NubbyUtil.parseVariableNode(arguments[6]);
 
                 int perkFxColor = (int)NubbyUtil.parseVariableNode(arguments[7]);
 
@@ -261,9 +286,9 @@ namespace NubbyExtractor
                     perkTrigger!,
                     (NubbyPerkTier)perkTier,
                     (NubbyPerkType)perkType,
-                    inPerkItemPool,
+                    (NubbyPerkPool)perkItemPool,
                     perkFXRGB,
-                    altPerkDescVal,
+                    (NubbyPerkAltDescription)altPerkDescVal,
                     perkDescText
                 );
 
